@@ -253,60 +253,62 @@
   }
 
   function renderCategoryChart() {
-    if (!chartCategory) chartCategory = echarts.init(document.getElementById('chartCategory'));
-    const cats = MOCK_DATA[state.category].categories.slice().sort((a,b) => b.sales - a.sales);
-    const c = getThemeColor();
-    chartCategory.setOption({
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' },
-        backgroundColor: 'rgba(26,26,46,0.95)', borderColor: 'transparent', textStyle: { color: '#fff' }
-      },
-      legend: { data: ['销量(件)', '热度'], top: 0, textStyle: { color: '#475569' } },
-      grid: { left: 50, right: 50, top: 40, bottom: 70 },
-      xAxis: {
-        type: 'category', data: cats.map(c => c.name),
-        axisLabel: { rotate: 28, fontSize: 11, color: '#475569' },
-        axisLine: { lineStyle: { color: 'rgba(0,0,0,0.1)' } }
-      },
-      yAxis: [
-        { type: 'value', name: '销量', axisLabel: { formatter: v => numFmt(v), color: '#94a3b8' },
-          splitLine: { lineStyle: { color: 'rgba(0,0,0,0.05)' } } },
-        { type: 'value', name: '热度', max: 100, axisLabel: { color: '#94a3b8' },
-          splitLine: { show: false } }
-      ],
-      series: [
-        {
-          name: '销量(件)', type: 'bar',
-          data: cats.map(o => o.sales),
-          itemStyle: {
-            color: {
-              type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-              colorStops: [
-                { offset: 0, color: c.primary },
-                { offset: 1, color: c.secondary }
-              ]
-            },
-            borderRadius: [6,6,0,0]
-          },
-          barWidth: '40%'
-        },
-        {
-          name: '热度', type: 'line', yAxisIndex: 1, smooth: true,
-          data: cats.map(o => o.heat),
-          itemStyle: { color: c.accent },
-          lineStyle: { width: 3, color: c.accent },
-          symbol: 'circle', symbolSize: 8,
-          areaStyle: {
-            color: {
-              type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-              colorStops: [
-                { offset: 0, color: c.accent + '40' },
-                { offset: 1, color: c.accent + '00' }
-              ]
-            }
-          }
-        }
-      ]
-    });
+    // 三级类目 TOP15 表格（按 GMV 倒序）
+    const wrap = document.getElementById('catTableWrap');
+    if (!wrap) return;
+    // 同步标题里的赛道名
+    const labelEl = document.getElementById('catTabLabel');
+    if (labelEl) labelEl.textContent = state.category === 'bags' ? '箱包' : '鞋靴';
+
+    const cats = MOCK_DATA[state.category].categories
+      .slice()
+      .sort((a, b) => b.gmv - a.gmv)
+      .slice(0, 15);
+    const maxGmv = cats[0] ? cats[0].gmv : 1;
+
+    const rows = cats.map((o, i) => {
+      const rank = i + 1;
+      const rankCls = rank === 1 ? 'cat-rank top1'
+                    : rank === 2 ? 'cat-rank top2'
+                    : rank === 3 ? 'cat-rank top3'
+                    : 'cat-rank';
+      const gmvWan = o.gmv >= 10000
+        ? (o.gmv / 10000).toFixed(2) + '亿'
+        : o.gmv.toLocaleString() + '万';
+      const salesStr = o.sales >= 10000
+        ? (o.sales / 10000).toFixed(1) + '万'
+        : o.sales.toLocaleString();
+      const barPct = Math.max(4, Math.round(o.gmv / maxGmv * 100));
+      return `
+        <tr>
+          <td><span class="${rankCls}">${rank}</span></td>
+          <td><span class="cat-name">${o.name}</span></td>
+          <td class="cat-bar-cell">
+            <span class="cat-gmv">¥${gmvWan}</span>
+            <span class="cat-bar"><i style="width:${barPct}%"></i></span>
+          </td>
+          <td>¥${o.avgPrice}</td>
+          <td>${salesStr}</td>
+          <td>${o.heat}</td>
+        </tr>
+      `;
+    }).join('');
+
+    wrap.innerHTML = `
+      <table class="cat-table">
+        <thead>
+          <tr>
+            <th style="width:48px;">#</th>
+            <th>三级类目</th>
+            <th style="width:160px;">GMV</th>
+            <th style="width:90px;">客单价</th>
+            <th style="width:90px;">销量(件)</th>
+            <th style="width:60px;">热度</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
   }
 
   // ---------- 表格 ----------
@@ -413,7 +415,6 @@
 
   window.addEventListener('resize', () => {
     chartGmv && chartGmv.resize();
-    chartCategory && chartCategory.resize();
   });
 
   initDateRange();

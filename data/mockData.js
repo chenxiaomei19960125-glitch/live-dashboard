@@ -14,31 +14,42 @@
  *   category3 / priceBand
  */
 
-// ========== 三级类目 ==========
+// ========== 三级类目（每赛道 TOP15，含 GMV(万元) / 客单价(¥) / 销量(件) / 热度） ==========
+// 注：GMV/客单价 为 2026-03-01~至今 区间内的全行业大众品牌合计（已剔除奢侈品）
 const CATEGORY_BAGS = [
-  { name: '女士单肩包',  sales: 12800, heat: 92 },
-  { name: '女士手提包',  sales: 11500, heat: 88 },
-  { name: '女士斜挎包',  sales: 9700,  heat: 85 },
-  { name: '托特包',      sales: 9100,  heat: 81 },
-  { name: '双肩书包',    sales: 8200,  heat: 76 },
-  { name: '链条包',      sales: 7600,  heat: 79 },
-  { name: '男士商务包',  sales: 6300,  heat: 71 },
-  { name: '钱包卡包',    sales: 5800,  heat: 68 },
-  { name: '行李箱',      sales: 5200,  heat: 64 },
-  { name: '腰包胸包',    sales: 4100,  heat: 58 }
+  { name: '女士单肩包',  gmv: 38200, avgPrice: 298, sales: 128200, heat: 92 },
+  { name: '女士手提包',  gmv: 35600, avgPrice: 310, sales: 114800, heat: 88 },
+  { name: '托特包',      gmv: 31400, avgPrice: 345, sales: 91000,  heat: 85 },
+  { name: '女士斜挎包',  gmv: 28700, avgPrice: 245, sales: 117100, heat: 87 },
+  { name: '链条包',      gmv: 24300, avgPrice: 388, sales: 62600,  heat: 79 },
+  { name: '双肩书包',    gmv: 22100, avgPrice: 215, sales: 102800, heat: 81 },
+  { name: '男士商务包',  gmv: 18500, avgPrice: 428, sales: 43200,  heat: 71 },
+  { name: '行李箱',      gmv: 16800, avgPrice: 465, sales: 36100,  heat: 68 },
+  { name: '钱包卡包',    gmv: 12400, avgPrice: 138, sales: 89800,  heat: 73 },
+  { name: '男士单肩包',  gmv: 10900, avgPrice: 268, sales: 40700,  heat: 64 },
+  { name: '腰包胸包',    gmv: 9600,  avgPrice: 175, sales: 54800,  heat: 66 },
+  { name: '化妆包/收纳包', gmv: 8200, avgPrice: 95,  sales: 86300,  heat: 62 },
+  { name: '帆布包/购物袋', gmv: 6800, avgPrice: 88,  sales: 77200,  heat: 58 },
+  { name: '电脑包',      gmv: 6100,  avgPrice: 235, sales: 25900,  heat: 55 },
+  { name: '妈咪包',      gmv: 5400,  avgPrice: 198, sales: 27200,  heat: 52 }
 ];
 
 const CATEGORY_SHOES = [
-  { name: '女士高跟鞋',  sales: 13200, heat: 94 },
-  { name: '女士单鞋',    sales: 11800, heat: 89 },
-  { name: '女士运动鞋',  sales: 10500, heat: 87 },
-  { name: '男士运动鞋',  sales: 9800,  heat: 84 },
-  { name: '女士靴子',    sales: 9300,  heat: 82 },
-  { name: '男士休闲鞋',  sales: 8700,  heat: 78 },
-  { name: '男士皮鞋',    sales: 7400,  heat: 73 },
-  { name: '凉鞋拖鞋',    sales: 6900,  heat: 70 },
-  { name: '童鞋',        sales: 5300,  heat: 65 },
-  { name: '老人鞋',      sales: 4600,  heat: 61 }
+  { name: '女士运动鞋',  gmv: 52600, avgPrice: 245, sales: 214600, heat: 94 },
+  { name: '男士运动鞋',  gmv: 48800, avgPrice: 268, sales: 182000, heat: 92 },
+  { name: '女士单鞋',    gmv: 41200, avgPrice: 198, sales: 208000, heat: 89 },
+  { name: '女士靴子',    gmv: 38600, avgPrice: 358, sales: 107800, heat: 86 },
+  { name: '男士休闲鞋',  gmv: 35400, avgPrice: 285, sales: 124200, heat: 84 },
+  { name: '女士高跟鞋',  gmv: 28900, avgPrice: 268, sales: 107800, heat: 82 },
+  { name: '男士皮鞋',    gmv: 26800, avgPrice: 365, sales: 73400,  heat: 76 },
+  { name: '凉鞋',        gmv: 22300, avgPrice: 158, sales: 141100, heat: 78 },
+  { name: '拖鞋',        gmv: 18600, avgPrice: 78,  sales: 238500, heat: 81 },
+  { name: '老人鞋',      gmv: 15400, avgPrice: 168, sales: 91700,  heat: 71 },
+  { name: '童鞋',        gmv: 14200, avgPrice: 188, sales: 75500,  heat: 69 },
+  { name: '女士帆布鞋',  gmv: 11600, avgPrice: 145, sales: 80000,  heat: 66 },
+  { name: '雪地靴',      gmv: 9800,  avgPrice: 228, sales: 42900,  heat: 61 },
+  { name: '男士凉拖',    gmv: 8400,  avgPrice: 98,  sales: 85700,  heat: 64 },
+  { name: '功能/户外鞋', gmv: 7200,  avgPrice: 398, sales: 18100,  heat: 58 }
 ];
 
 // ========== 全赛道大众品牌池 ==========

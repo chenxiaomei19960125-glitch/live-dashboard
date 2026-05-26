@@ -233,6 +233,52 @@
   }
   .chart-box { height: 360px; }
 
+  /* ===== 三级类目 TOP15 表格（嵌在 chart-card 里） ===== */
+  .cat-table-wrap {
+    height: 360px; overflow: auto;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+  }
+  table.cat-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .cat-table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: linear-gradient(180deg, #f8f8fc 0%, #f1f1f7 100%);
+    color: var(--text-secondary); font-weight: 600; font-size: 12px;
+    padding: 10px 12px; border-bottom: 2px solid var(--border-strong);
+    text-align: right; white-space: nowrap;
+  }
+  .cat-table thead th:first-child,
+  .cat-table thead th:nth-child(2) { text-align: left; }
+  .cat-table tbody td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    color: var(--text-primary); text-align: right; white-space: nowrap;
+  }
+  .cat-table tbody td:first-child,
+  .cat-table tbody td:nth-child(2) { text-align: left; }
+  .cat-table tbody tr:nth-child(even) { background: rgba(99,102,241,0.025); }
+  .cat-table tbody tr:hover { background: var(--accent-soft); }
+  .cat-rank {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 6px;
+    font-size: 11px; font-weight: 700; color: var(--text-secondary);
+    background: rgba(0,0,0,0.04);
+  }
+  .cat-rank.top1 { background: var(--gradient-2); color: #fff; }
+  .cat-rank.top2 { background: var(--gradient-4); color: #fff; }
+  .cat-rank.top3 { background: var(--gradient-5); color: #fff; }
+  .cat-name { font-weight: 600; color: var(--text-primary); }
+  .cat-gmv  { font-weight: 700; color: var(--accent); }
+  .cat-bar-cell { position: relative; min-width: 90px; }
+  .cat-bar {
+    position: absolute; left: 12px; right: 12px; bottom: 4px; height: 3px;
+    background: var(--accent-soft); border-radius: 2px; overflow: hidden;
+  }
+  .cat-bar > i {
+    display: block; height: 100%;
+    background: var(--gradient-1); border-radius: 2px;
+  }
+
   /* ===== Table ===== */
   .table-card {
     background: var(--bg-card);
@@ -576,8 +622,8 @@
       <div id="chartGmv" class="chart-box"></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">三级类目 销量 & 热度</div>
-      <div id="chartCategory" class="chart-box"></div>
+      <div class="chart-title">三级类目 GMV TOP15 · <span id="catTabLabel">箱包</span>赛道</div>
+      <div id="catTableWrap" class="cat-table-wrap"></div>
     </div>
   </div>
 
