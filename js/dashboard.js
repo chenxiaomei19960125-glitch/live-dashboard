@@ -253,15 +253,40 @@
   }
 
   function renderCategoryChart() {
-    // 三级类目 TOP15 表格（按 GMV 倒序）
+    // 三级类目 TOP15 表格（按 当前选区内的 GMV 倒序）
     const wrap = document.getElementById('catTableWrap');
     if (!wrap) return;
-    // 同步标题里的赛道名
-    const labelEl = document.getElementById('catTabLabel');
-    if (labelEl) labelEl.textContent = state.category === 'bags' ? '箱包' : '鞋靴';
 
+    // 计算当前日期选区的天数（含首尾）
+    const dayMs = 86400000;
+    const sd = new Date(state.startDate);
+    const ed = new Date(state.endDate);
+    let days = Math.max(1, Math.round((ed - sd) / dayMs) + 1);
+
+    // 基准数据 (CATEGORY_BAGS/SHOES 里的 gmv/sales) 设定为 30 天行业规模，
+    // 这里按"实际选区天数 / 30"做线性缩放，让 1天/7天/30天/全量自然拉开
+    const baseDays = 30;
+    const scale = days / baseDays;
+
+    // 给类目标题加日期范围说明 & 同步赛道名
+    const labelEl = document.getElementById('catTabLabel');
+    if (labelEl) {
+      labelEl.textContent = (state.category === 'bags' ? '箱包' : '鞋靴')
+        + ` · ${state.startDate} ~ ${state.endDate}（${days}天）`;
+    }
+
+    // 按当前选区缩放后的 gmv/sales 排序
     const cats = MOCK_DATA[state.category].categories
-      .slice()
+      .map(o => {
+        // 给每个类目按选区做轻微伪随机抖动（±8%），保持稳定但不机械
+        const seed = hashStr(o.name + state.startDate + state.endDate);
+        const jitter = 0.92 + (seed % 160) / 1000; // 0.92 ~ 1.08
+        const gmv = Math.round(o.gmv * scale * jitter);              // 单位：万元
+        const sales = Math.round(o.sales * scale * jitter);
+        // 客单价 = GMV / 销量，理论上等于 o.avgPrice，但因 jitter 不同会有 ±1% 浮动
+        const avgPrice = sales > 0 ? Math.round(gmv * 10000 / sales) : o.avgPrice;
+        return { name: o.name, gmv, sales, avgPrice };
+      })
       .sort((a, b) => b.gmv - a.gmv)
       .slice(0, 15);
     const maxGmv = cats[0] ? cats[0].gmv : 1;
@@ -272,9 +297,7 @@
                     : rank === 2 ? 'cat-rank top2'
                     : rank === 3 ? 'cat-rank top3'
                     : 'cat-rank';
-      const gmvWan = o.gmv >= 10000
-        ? (o.gmv / 10000).toFixed(2) + '亿'
-        : o.gmv.toLocaleString() + '万';
+      const gmvStr = formatGmv(o.gmv);
       const salesStr = o.sales >= 10000
         ? (o.sales / 10000).toFixed(1) + '万'
         : o.sales.toLocaleString();
@@ -284,12 +307,11 @@
           <td><span class="${rankCls}">${rank}</span></td>
           <td><span class="cat-name">${o.name}</span></td>
           <td class="cat-bar-cell">
-            <span class="cat-gmv">¥${gmvWan}</span>
+            <span class="cat-gmv">¥${gmvStr}</span>
             <span class="cat-bar"><i style="width:${barPct}%"></i></span>
           </td>
-          <td>¥${o.avgPrice}</td>
+          <td>¥${o.avgPrice.toLocaleString()}</td>
           <td>${salesStr}</td>
-          <td>${o.heat}</td>
         </tr>
       `;
     }).join('');
@@ -300,15 +322,27 @@
           <tr>
             <th style="width:48px;">#</th>
             <th>三级类目</th>
-            <th style="width:160px;">GMV</th>
+            <th style="width:170px;">GMV</th>
             <th style="width:90px;">客单价</th>
             <th style="width:90px;">销量(件)</th>
-            <th style="width:60px;">热度</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
     `;
+  }
+
+  // 字符串简易哈希（生成稳定伪随机数）
+  function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+  // GMV 数字格式化（万元 → 自动选择 万/亿）
+  function formatGmv(wan) {
+    if (wan >= 10000) return (wan / 10000).toFixed(2) + '亿';
+    if (wan >= 1000)  return (wan / 1000).toFixed(2) + '千万';
+    return wan.toLocaleString() + '万';
   }
 
   // ---------- 表格 ----------
