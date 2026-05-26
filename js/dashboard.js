@@ -275,17 +275,14 @@
         + ` · ${state.startDate} ~ ${state.endDate}（${days}天）`;
     }
 
-    // 按当前选区缩放后的 gmv/sales 排序
+    // 按当前选区缩放后的 gmv 排序
     const cats = MOCK_DATA[state.category].categories
       .map(o => {
         // 给每个类目按选区做轻微伪随机抖动（±8%），保持稳定但不机械
         const seed = hashStr(o.name + state.startDate + state.endDate);
         const jitter = 0.92 + (seed % 160) / 1000; // 0.92 ~ 1.08
-        const gmv = Math.round(o.gmv * scale * jitter);              // 单位：万元
-        const sales = Math.round(o.sales * scale * jitter);
-        // 客单价 = GMV / 销量，理论上等于 o.avgPrice，但因 jitter 不同会有 ±1% 浮动
-        const avgPrice = sales > 0 ? Math.round(gmv * 10000 / sales) : o.avgPrice;
-        return { name: o.name, gmv, sales, avgPrice };
+        const gmv = Math.round(o.gmv * scale * jitter); // 单位：万元
+        return { name: o.name, gmv };
       })
       .sort((a, b) => b.gmv - a.gmv)
       .slice(0, 15);
@@ -298,9 +295,6 @@
                     : rank === 3 ? 'cat-rank top3'
                     : 'cat-rank';
       const gmvStr = formatGmv(o.gmv);
-      const salesStr = o.sales >= 10000
-        ? (o.sales / 10000).toFixed(1) + '万'
-        : o.sales.toLocaleString();
       const barPct = Math.max(4, Math.round(o.gmv / maxGmv * 100));
       return `
         <tr>
@@ -310,8 +304,6 @@
             <span class="cat-gmv">¥${gmvStr}</span>
             <span class="cat-bar"><i style="width:${barPct}%"></i></span>
           </td>
-          <td>¥${o.avgPrice.toLocaleString()}</td>
-          <td>${salesStr}</td>
         </tr>
       `;
     }).join('');
@@ -321,10 +313,8 @@
         <thead>
           <tr>
             <th style="width:48px;">#</th>
-            <th>三级类目</th>
-            <th style="width:170px;">GMV</th>
-            <th style="width:90px;">客单价</th>
-            <th style="width:90px;">销量(件)</th>
+            <th style="width:140px;">三级类目</th>
+            <th>GMV</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
