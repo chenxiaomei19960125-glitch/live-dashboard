@@ -61,6 +61,12 @@ const BAG_BRANDS_FULL = [
   '金利来', '宾度', 'Lacoste', '思加图', '万里马',
   '热风', '安踏包袋', '探路者包袋', '北面包袋', '李宁包袋'
 ];
+// 箱包赛道中，知名度较高、有明确商标授权的算"品牌"，其余为"白牌"
+const BAG_BRAND_SET = new Set([
+  '小CK','Lacoste','新秀丽','美旅','金利来',
+  '安踏包袋','探路者包袋','北面包袋','李宁包袋','七匹狼',
+  '迪桑娜','思加图','红谷'
+]);
 const SHOE_BRANDS_FULL = [
   '红蜻蜓', '百丽', '奥康', '骆驼', '足力健',
   '木林森', '老北京布鞋', '富贵鸟', '回力', '大东',
@@ -69,6 +75,11 @@ const SHOE_BRANDS_FULL = [
   '特步', '361度', '鸿星尔克', '匹克', '乔丹',
   '斯凯奇', '探路者', '北面', '其乐', '回力老爹鞋'
 ];
+const SHOE_BRAND_SET = new Set([
+  '百丽','奥康','骆驼','森达','千百度','康奈','思加图',
+  '哈森','天美意','安踏','李宁','特步','361度',
+  '鸿星尔克','匹克','斯凯奇','探路者','北面','其乐'
+]);
 
 // 单场 GMV 基准（万元）按排名递减
 function buildGmvBase(n, top, bottom) {
@@ -190,8 +201,14 @@ function makeSession(brand, gmv, date, title, category3) {
     trafficPerMin, danmuCount, danmuPeople, interactRate,
     estSales, estGmv: gmv, salesPerMin,
     avgPrice, skuCount, gmvPerMin,
-    category3, priceBand
+    category3, priceBand,
+    isBrand: false // buildSessions 会覆盖
   };
+}
+
+// 根据赛道返回该品牌是否为"品牌"（非白牌）
+function isBrandInCategory(brand, categoryKey) {
+  return (categoryKey === 'bags' ? BAG_BRAND_SET : SHOE_BRAND_SET).has(brand);
 }
 
 function buildSessions(brands, baseGmvList, categories, endDateStr) {
@@ -206,9 +223,11 @@ function buildSessions(brands, baseGmvList, categories, endDateStr) {
     p => `${p}百亿补贴专场`,
     p => `${p}限时秒杀直播间`
   ];
+  const catKey = (brands === BAG_BRANDS_FULL) ? 'bags' : 'shoes';
   const sessions = [];
   brands.forEach((brand, idx) => {
     const seed = hashStr(brand);
+    const isBrand = isBrandInCategory(brand, catKey);
     dates.forEach((d, di) => {
       // 是否开播：基于 (品牌+日期) 稳定决定
       const openR = seededRand(brand, d, 'open');
@@ -217,7 +236,9 @@ function buildSessions(brands, baseGmvList, categories, endDateStr) {
       // GMV 波动也基于种子（每天会浮动 ±30%，跨天会变）
       const gmv = Math.round(baseGmv * (0.7 + seededRand(brand, d, 'gmv') * 0.6));
       const cat = categories[(idx + di) % categories.length].name;
-      sessions.push(makeSession(brand, gmv, d, titlePool[di % titlePool.length](brand), cat));
+      const s = makeSession(brand, gmv, d, titlePool[di % titlePool.length](brand), cat);
+      s.isBrand = isBrand;
+      sessions.push(s);
     });
   });
   return sessions;
@@ -233,6 +254,10 @@ const MOCK_DATA = {
   nextRefresh: NEXT_REFRESH,
   dataRange: { start: '2026-03-01', end: DATA_VERSION },
   excludedBrands: ['古驰', '蔻驰', 'LV', '爱马仕', 'PRADA', 'Dior', 'Chanel', 'Burberry', 'MK', '路易卡迪'],
+  brandSets: {
+    bags: BAG_BRAND_SET,
+    shoes: SHOE_BRAND_SET
+  },
   bags: {
     categories: CATEGORY_BAGS,
     brands: BAG_BRANDS_FULL,
