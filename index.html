@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>箱包鞋靴直播数据看板</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg-primary: #f5f5fa;
+    --bg-card: #ffffff;
+    --bg-card-hover: rgba(255,255,255,0.95);
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(99,102,241,0.18);
+    --text-primary: #1a1a2e;
+    --text-secondary: rgba(0,0,0,0.55);
+    --text-muted: rgba(0,0,0,0.38);
+    --accent: #6366f1;
+    --accent-soft: rgba(99,102,241,0.12);
+    --gradient-1: linear-gradient(135deg, #6366f1, #8b5cf6);
+    --gradient-2: linear-gradient(135deg, #ec4899, #f43f5e);
+    --gradient-3: linear-gradient(135deg, #14b8a6, #06b6d4);
+    --gradient-4: linear-gradient(135deg, #f59e0b, #ef4444);
+    --gradient-5: linear-gradient(135deg, #a78bfa, #818cf8);
+    --gradient-green: linear-gradient(135deg, #34d399, #10b981);
+    --gradient-blue:  linear-gradient(135deg, #38bdf8, #0ea5e9);
+    --gradient-yellow:linear-gradient(135deg, #fbbf24, #eab308);
+    --gradient-orange:linear-gradient(135deg, #fb923c, #f97316);
+    --gradient-pink:  linear-gradient(135deg, #f472b6, #ec4899);
+    --shadow: 0 8px 32px rgba(0,0,0,0.08);
+    --shadow-sm: 0 1px 4px rgba(99,102,241,0.06);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  /* ===== Header ===== */
+  .header {
+    padding: 22px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.85);
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: var(--gradient-1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+    color: #fff;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+  .header-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .update-badge {
+    font-size: 11px; color: var(--text-muted);
+    background: rgba(0,0,0,0.05); padding: 6px 12px; border-radius: 20px;
+  }
+
+  /* ===== Tab Navigation ===== */
+  .tab-nav {
+    display: flex; gap: 4px;
+    padding: 14px 48px 0;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.6);
+  }
+  .tab-btn {
+    padding: 12px 24px; font-size: 14px; font-weight: 600;
+    color: var(--text-secondary);
+    background: transparent; border: none; cursor: pointer;
+    position: relative; border-radius: 8px 8px 0 0;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text-primary); background: var(--accent-soft); }
+  .tab-btn.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .tab-btn.active::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: var(--gradient-1); border-radius: 2px 2px 0 0;
+  }
+
+  /* ===== Container ===== */
+  .container {
+    padding: 24px 48px 48px;
+    max-width: 1680px; margin: 0 auto;
+  }
+
+  /* ===== Filter Bar ===== */
+  .filter-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+    margin-bottom: 18px;
+  }
+  .filter-label {
+    font-size: 13px; color: var(--text-secondary); font-weight: 600;
+    margin-right: 4px;
+  }
+  .date-input {
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 12px; font-size: 13px; color: var(--text-primary);
+    outline: none; transition: all .2s;
+  }
+  .date-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .quick-btn {
+    padding: 7px 14px; font-size: 12px; font-weight: 500;
+    color: var(--text-secondary);
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; transition: all .2s;
+  }
+  .quick-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .quick-btn.active { color: #fff; background: var(--gradient-1); border-color: transparent; }
+  .apply-btn {
+    padding: 8px 18px; font-size: 13px; font-weight: 600;
+    color: #fff; background: var(--gradient-1);
+    border: none; border-radius: 8px; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.25);
+    transition: transform .2s;
+  }
+  .apply-btn:hover { transform: translateY(-1px); }
+  .filter-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+  .exclude-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; font-size: 11px;
+    background: rgba(239,68,68,0.08); color: #dc2626;
+    border-radius: 12px; font-weight: 500;
+  }
+
+  /* ===== KPI Section ===== */
+  .kpi-section { margin-bottom: 16px; }
+  .kpi-section-title {
+    font-size: 12px; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 10px; padding-left: 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .kpi-section-title::before {
+    content: ''; display: inline-block; width: 3px; height: 14px; border-radius: 2px;
+  }
+  .kpi-section[data-group="overview"] .kpi-section-title::before { background: var(--gradient-1); }
+  .kpi-section[data-group="sales"]    .kpi-section-title::before { background: var(--gradient-green); }
+  .kpi-section[data-group="interact"] .kpi-section-title::before { background: var(--gradient-pink); }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .kpi-card {
+    background: #fff;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 10px; padding: 14px 16px;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99,102,241,0.35);
+    box-shadow: 0 4px 14px rgba(99,102,241,0.12);
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .kpi-section[data-group="overview"] .kpi-card:nth-child(1)::before { background: var(--gradient-1); }
+  .kpi-section[data-group="overview"] .kpi-card:nth-child(2)::before { background: var(--gradient-2); }
+  .kpi-section[data-group="overview"] .kpi-card:nth-child(3)::before { background: var(--gradient-3); }
+  .kpi-section[data-group="overview"] .kpi-card:nth-child(4)::before { background: var(--gradient-4); }
+  .kpi-section[data-group="overview"] .kpi-card:nth-child(5)::before { background: var(--gradient-5); }
+  .kpi-section[data-group="sales"] .kpi-card:nth-child(1)::before { background: var(--gradient-green); }
+  .kpi-section[data-group="sales"] .kpi-card:nth-child(2)::before { background: var(--gradient-blue); }
+  .kpi-section[data-group="sales"] .kpi-card:nth-child(3)::before { background: var(--gradient-yellow); }
+  .kpi-section[data-group="sales"] .kpi-card:nth-child(4)::before { background: var(--gradient-orange); }
+  .kpi-section[data-group="sales"] .kpi-card:nth-child(5)::before { background: linear-gradient(135deg,#a3e635,#84cc16); }
+  .kpi-section[data-group="interact"] .kpi-card:nth-child(1)::before { background: var(--gradient-pink); }
+  .kpi-section[data-group="interact"] .kpi-card:nth-child(2)::before { background: linear-gradient(135deg,#fda4af,#fb7185); }
+  .kpi-section[data-group="interact"] .kpi-card:nth-child(3)::before { background: linear-gradient(135deg,#c084fc,#a855f7); }
+  .kpi-section[data-group="interact"] .kpi-card:nth-child(4)::before { background: linear-gradient(135deg,#fde047,#facc15); }
+  .kpi-section[data-group="interact"] .kpi-card:nth-child(5)::before { background: linear-gradient(135deg,#7dd3fc,#38bdf8); }
+
+  .kpi-label {
+    font-size: 11px; color: var(--text-muted);
+    font-weight: 500; letter-spacing: 0.3px;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .kpi-value {
+    font-size: 22px; font-weight: 700; color: var(--text-primary);
+    line-height: 1.1; letter-spacing: -0.5px;
+  }
+  .kpi-unit {
+    font-size: 12px; color: var(--text-muted); font-weight: 500;
+    margin-left: 4px;
+  }
+
+  /* ===== Charts ===== */
+  .charts-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 1200px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .chart-title {
+    font-size: 14px; font-weight: 700;
+    color: var(--text-primary);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .chart-title::before {
+    content: ''; width: 3px; height: 14px;
+    background: var(--gradient-1); border-radius: 2px;
+  }
+  .chart-box { height: 360px; }
+
+  /* ===== Table ===== */
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .table-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+  }
+  .table-info {
+    font-size: 12px; color: var(--text-muted); font-weight: 500;
+  }
+  .table-wrap {
+    overflow: auto; max-height: 600px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  table.live-table {
+    min-width: 2300px; border-collapse: collapse; width: 100%; font-size: 12.5px;
+  }
+  .live-table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: linear-gradient(180deg, #f8f8fc 0%, #f1f1f7 100%);
+    color: var(--text-secondary);
+    padding: 12px 10px; border-bottom: 2px solid var(--border-strong);
+    white-space: nowrap; cursor: pointer; user-select: none;
+    font-weight: 600;
+  }
+  .live-table thead th:hover { color: var(--accent); background: var(--accent-soft); }
+  .live-table tbody td {
+    padding: 11px 10px; border-bottom: 1px solid var(--border);
+    white-space: nowrap; color: var(--text-primary);
+  }
+  .live-table tbody tr:nth-child(even) { background: rgba(99,102,241,0.02); }
+  .live-table tbody tr:hover { background: var(--accent-soft); }
+  .brand-chip {
+    display: inline-block; padding: 3px 10px; border-radius: 10px;
+    font-size: 12px; font-weight: 600;
+    background: var(--gradient-1); color: #fff;
+  }
+  .brand-chip.shoe { background: var(--gradient-3); }
+  .num-strong { font-weight: 600; color: var(--accent); }
+
+  /* ===== Guide ===== */
+  .guide-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+  }
+  .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 1000px) { .guide-grid { grid-template-columns: 1fr; } }
+  .guide-title {
+    font-size: 16px; font-weight: 700; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .guide-step-list { list-style: none; counter-reset: step; }
+  .guide-step-list li {
+    counter-increment: step;
+    padding: 10px 12px 10px 44px; position: relative;
+    font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;
+    border-radius: 8px; margin-bottom: 4px;
+  }
+  .guide-step-list li::before {
+    content: counter(step);
+    position: absolute; left: 10px; top: 10px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--gradient-1); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .guide-step-list li:hover { background: var(--accent-soft); }
+  .guide-mark { color: #ef4444; font-weight: 700; }
+  .alert-warn {
+    margin-top: 14px; padding: 12px 14px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 8px;
+    font-size: 12px; color: #92400e;
+  }
+  .step-img-box {
+    background: linear-gradient(135deg, #fafafe 0%, #f0f0fa 100%);
+    border: 1px dashed rgba(99,102,241,0.3);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+  }
+
+  /* ===== Playbook (打法洞察) ===== */
+  .playbook-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .playbook-title {
+    font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 4px;
+  }
+  .playbook-subtitle {
+    font-size: 12.5px; color: var(--text-muted);
+    margin-bottom: 18px;
+  }
+  .pb-section-title {
+    font-size: 13px; font-weight: 700; color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 8px;
+    margin: 18px 0 10px;
+  }
+  .pb-section-title::before {
+    content: ''; display: inline-block; width: 3px; height: 14px;
+    background: var(--gradient-1); border-radius: 2px;
+  }
+
+  /* 画像表格 */
+  .pb-portrait {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  }
+  .pb-portrait-item {
+    background: linear-gradient(135deg, #f8f8fc 0%, #f1f1f7 100%);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .pb-portrait-item .lbl { font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px; }
+  .pb-portrait-item .val { font-size: 13.5px; font-weight: 600; color: var(--text-primary); line-height:1.4; }
+
+  /* 四大打法卡片 */
+  .pb-tactics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 1100px) { .pb-tactics { grid-template-columns: 1fr; } }
+  .pb-tactic {
+    border: 1px solid var(--border-strong);
+    border-radius: 12px; padding: 16px 18px;
+    background: #fff;
+    position: relative; overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .pb-tactic:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.12); }
+  .pb-tactic::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  }
+  .pb-tactic.t1::before { background: var(--gradient-1); }
+  .pb-tactic.t2::before { background: var(--gradient-2); }
+  .pb-tactic.t3::before { background: var(--gradient-3); }
+  .pb-tactic.t4::before { background: var(--gradient-4); }
+  .pb-tactic-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .pb-tactic-num {
+    width: 26px; height: 26px; border-radius: 8px;
+    color: #fff; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pb-tactic.t1 .pb-tactic-num { background: var(--gradient-1); }
+  .pb-tactic.t2 .pb-tactic-num { background: var(--gradient-2); }
+  .pb-tactic.t3 .pb-tactic-num { background: var(--gradient-3); }
+  .pb-tactic.t4 .pb-tactic-num { background: var(--gradient-4); }
+  .pb-tactic-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .pb-tactic-metric {
+    display: inline-block; margin-left: auto;
+    font-size: 11px; padding: 3px 9px; border-radius: 10px;
+    background: var(--accent-soft); color: var(--accent); font-weight: 600;
+  }
+  .pb-tactic-desc {
+    font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+    margin: 4px 0 8px;
+  }
+  .pb-tactic ul {
+    list-style: none; padding: 0;
+  }
+  .pb-tactic ul li {
+    font-size: 12.5px; color: var(--text-secondary); line-height: 1.7;
+    padding-left: 16px; position: relative;
+  }
+  .pb-tactic ul li::before {
+    content: ''; position: absolute; left: 4px; top: 11px;
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* 品类差异化 + SOP */
+  .pb-two-col { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; }
+  @media (max-width: 1100px) { .pb-two-col { grid-template-columns: 1fr; } }
+
+  .pb-cat-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .pb-cat-table th, .pb-cat-table td {
+    text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border);
+  }
+  .pb-cat-table thead th {
+    background: linear-gradient(180deg,#f8f8fc,#f1f1f7);
+    font-weight: 600; color: var(--text-secondary); font-size: 12px;
+  }
+  .pb-cat-table tbody tr:hover { background: var(--accent-soft); }
+  .pb-cat-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 8px;
+    font-size: 11px; font-weight: 600; color: #fff;
+  }
+  .pb-cat-tag.bag { background: var(--gradient-1); }
+  .pb-cat-tag.sport { background: var(--gradient-3); }
+  .pb-cat-tag.women { background: var(--gradient-2); }
+  .pb-cat-tag.elder { background: var(--gradient-4); }
+
+  /* SOP 时间轴 */
+  .pb-sop {
+    background: linear-gradient(135deg,#fafafe 0%, #f0f0fa 100%);
+    border: 1px dashed rgba(99,102,241,0.3);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+  }
+  .pb-sop-step {
+    display: flex; gap: 12px; padding: 8px 0;
+    border-bottom: 1px dashed rgba(99,102,241,0.15);
+  }
+  .pb-sop-step:last-child { border-bottom: none; }
+  .pb-sop-time {
+    width: 110px; flex-shrink: 0;
+    font-size: 11.5px; font-weight: 700; color: var(--accent);
+  }
+  .pb-sop-act { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* 建议 */
+  .pb-tips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 1100px) { .pb-tips { grid-template-columns: repeat(2,1fr); } }
+  .pb-tip {
+    background: #fff;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px; padding: 12px 14px;
+    border-left: 4px solid var(--accent);
+  }
+  .pb-tip .tag {
+    font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); padding: 2px 8px; border-radius: 8px;
+    display: inline-block; margin-bottom: 6px;
+  }
+  .pb-tip .txt {
+    font-size: 12.5px; color: var(--text-primary); font-weight: 500; line-height: 1.5;
+  }
+
+  footer {
+    text-align: center; font-size: 12px; color: var(--text-muted);
+    padding: 20px 0 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">📦</div>
+    <div>
+      <h1>箱包鞋靴直播数据看板</h1>
+      <div class="header-subtitle">每天 15:00 自动更新 · 箱包/鞋靴全赛道直播指标 · 已剔除奢侈品</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="update-badge">数据更新：<span id="updateTime"></span></span>
+    <span class="update-badge" id="nextRefreshBadge" style="background:rgba(16,185,129,0.1); color:#059669;">下次自动更新：--</span>
+    <span class="update-badge" style="background:rgba(99,102,241,0.08); color:var(--accent);">来源：友望</span>
+  </div>
+</header>
+
+<!-- ===== Tab Nav ===== -->
+<div class="tab-nav">
+  <button data-cat="bags"  class="tab-btn active">👜 箱包</button>
+  <button data-cat="shoes" class="tab-btn">👟 鞋靴</button>
+</div>
+
+<div class="container">
+
+  <!-- ===== Filter Bar ===== -->
+  <section class="filter-bar">
+    <span class="filter-label">📅 时间周期</span>
+    <input id="startDate" type="date" class="date-input" />
+    <span style="color:var(--text-muted)">至</span>
+    <input id="endDate" type="date" class="date-input" />
+
+    <div class="filter-divider"></div>
+
+    <button data-range="yesterday" class="quick-btn">昨天</button>
+    <button data-range="7"   class="quick-btn">近7天</button>
+    <button data-range="14"  class="quick-btn">近14天</button>
+    <button data-range="30"  class="quick-btn">近30天</button>
+    <button data-range="all" class="quick-btn active">3月1日至今</button>
+
+    <button id="applyFilter" class="apply-btn">应用筛选</button>
+
+    <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+      <span class="exclude-tag" title="已剔除奢侈品/高端品牌"
+        >⊘ 已剔除：<span id="excludeList"></span></span>
+    </div>
+  </section>
+
+  <!-- ===== KPI Section: 直播概览 ===== -->
+  <section class="kpi-section" data-group="overview">
+    <div class="kpi-section-title">直播概览</div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">📺 直播场次</div><div class="kpi-value" id="kpiSessions">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">🏷️ 品牌数（全赛道）</div><div class="kpi-value" id="kpiBrands">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">⏱ 平均直播时长</div><div class="kpi-value" id="kpiDuration">-<span class="kpi-unit">小时</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">👁 总观看人数</div><div class="kpi-value" id="kpiViewers">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">🛍 商品总数</div><div class="kpi-value" id="kpiSku">-</div></div>
+    </div>
+  </section>
+
+  <!-- ===== KPI Section: 销售数据 ===== -->
+  <section class="kpi-section" data-group="sales">
+    <div class="kpi-section-title">销售数据</div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">💰 总 GMV</div><div class="kpi-value" id="kpiGmv">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">📈 平均转化率</div><div class="kpi-value" id="kpiConv">-<span class="kpi-unit">%</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">💸 平均人均价值</div><div class="kpi-value" id="kpiPerCap">-<span class="kpi-unit">¥</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">🎯 平均 GPM</div><div class="kpi-value" id="kpiGpm">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">🧾 平均笔单价</div><div class="kpi-value" id="kpiAvgPrice">-<span class="kpi-unit">¥</span></div></div>
+    </div>
+  </section>
+
+  <!-- ===== KPI Section: 互动数据 ===== -->
+  <section class="kpi-section" data-group="interact">
+    <div class="kpi-section-title">互动数据</div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">❤️ 总点赞数</div><div class="kpi-value" id="kpiLikes">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">💬 总弹幕条数</div><div class="kpi-value" id="kpiDanmu">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">👥 总弹幕人数</div><div class="kpi-value" id="kpiDanmuPpl">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">🤝 平均互动率</div><div class="kpi-value" id="kpiInteract">-<span class="kpi-unit">%</span></div></div>
+      <div class="kpi-card"><div class="kpi-label">🌊 分钟流量获取</div><div class="kpi-value" id="kpiFlow">-</div></div>
+    </div>
+  </section>
+
+  <!-- ===== Charts ===== -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">GMV TOP10 大众品牌 · 全赛道</div>
+      <div id="chartGmv" class="chart-box"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">三级类目 销量 & 热度</div>
+      <div id="chartCategory" class="chart-box"></div>
+    </div>
+  </div>
+
+  <!-- ===== Live Sessions Table ===== -->
+  <section class="table-card">
+    <div class="table-header">
+      <div class="chart-title" style="margin-bottom:0;">TOP10 品牌最新场次直播指标 · 全赛道排序</div>
+      <div class="table-info" id="tableInfo"></div>
+    </div>
+    <div class="table-wrap">
+      <table class="live-table" id="liveTable">
+        <thead><tr id="tableHead"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== Playbook 打法洞察 ===== -->
+  <section class="playbook-card" id="playbook">
+    <div class="playbook-title">🎯 TOP10 客户直播间打法 & 玩法洞察</div>
+    <div class="playbook-subtitle">
+      基于看板内 <span id="pbCatLabel">箱包</span>赛道 GMV TOP10 大众品牌的指标特征提炼，供运营策略与招商参考
+    </div>
+
+    <!-- 一、TOP10 基本盘画像 -->
+    <div class="pb-section-title">一、TOP10 基本盘画像</div>
+    <div class="pb-portrait" id="pbPortrait">
+      <!-- JS 动态填充 -->
+    </div>
+
+    <!-- 二、四大核心打法 -->
+    <div class="pb-section-title">二、四大核心打法</div>
+    <div class="pb-tactics">
+      <div class="pb-tactic t1">
+        <div class="pb-tactic-head">
+          <div class="pb-tactic-num">1</div>
+          <div class="pb-tactic-name">长播续航 + 整点循环爆破</div>
+          <span class="pb-tactic-metric">时长红利</span>
+        </div>
+        <div class="pb-tactic-desc">头部品牌几乎全部 ≥6h 长播，分钟流量获取稳定 800~1500/min，靠"在线时长"撬动自然流量推荐池权重。</div>
+        <ul>
+          <li>每小时一轮"福利款 → 主推款 → 利润款"循环</li>
+          <li>20:00 / 22:00 双高峰设秒杀，拉转化率峰值</li>
+          <li>下播前 30min 老粉专享价收尾、清库存</li>
+        </ul>
+      </div>
+
+      <div class="pb-tactic t2">
+        <div class="pb-tactic-head">
+          <div class="pb-tactic-num">2</div>
+          <div class="pb-tactic-name">爆款单品打透 GPM</div>
+          <span class="pb-tactic-metric">人货匹配</span>
+        </div>
+        <div class="pb-tactic-desc">头部品牌 GPM 稳定在 8000~12000，行业均值仅 4000~6000，"少而精"是关键。</div>
+        <ul>
+          <li>一场只主推 3~5 个超级单品（如稻草人通勤托特、红蜻蜓老爹鞋）</li>
+          <li>主推款讲解时长 ≥ 15 分钟，库存深度 ≥ 5000 件</li>
+          <li>钱包 / 袜子做"凑单引流款"，拉笔单价</li>
+        </ul>
+      </div>
+
+      <div class="pb-tactic t3">
+        <div class="pb-tactic-head">
+          <div class="pb-tactic-num">3</div>
+          <div class="pb-tactic-name">短视频投流 + 直播承接闭环</div>
+          <span class="pb-tactic-metric">流量结构</span>
+        </div>
+        <div class="pb-tactic-desc">观看量级 30万~50万，但人均价值仅 ¥8~15，外部投流占比明显高，闭环承接是关键。</div>
+        <ul>
+          <li>开播前 6 小时投放短视频（爆款展示 / 工厂溯源 / 价格对比）</li>
+          <li>千川"直播间高 ROI 投放"承接长尾</li>
+          <li>挂车同款短视频做免费流量补给</li>
+        </ul>
+      </div>
+
+      <div class="pb-tactic t4">
+        <div class="pb-tactic-head">
+          <div class="pb-tactic-num">4</div>
+          <div class="pb-tactic-name">强互动话术拉停留</div>
+          <span class="pb-tactic-metric">推荐权重</span>
+        </div>
+        <div class="pb-tactic-desc">观众互动率 30%~45%，明显高于行业均值，停留时长直接转化为算法推荐权重。</div>
+        <ul>
+          <li>整点抽奖（点赞过万抽 1 个包包）</li>
+          <li>关注 + 加粉丝团 解锁专享价格</li>
+          <li>每 2 分钟一次"扣 1 / 扣 2"互动话术</li>
+          <li>弹幕实时上墙带动从众下单</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 三、品类差异化 + SOP -->
+    <div class="pb-section-title">三、品类差异化玩法 & 标准化 SOP</div>
+    <div class="pb-two-col">
+      <div>
+        <table class="pb-cat-table">
+          <thead>
+            <tr><th style="width:120px;">品类</th><th>头部玩法重点</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="pb-cat-tag bag">箱包</span></td>
+              <td>"通勤场景化"演绎（搭西装/连衣裙）+ "工厂直发溯源"建立信任；客单价主打 200-500 性价比段</td>
+            </tr>
+            <tr>
+              <td><span class="pb-cat-tag sport">运动鞋</span></td>
+              <td>安踏 / 李宁 / 斯凯奇 男主播试穿走秀，强调缓震科技、工厂故事</td>
+            </tr>
+            <tr>
+              <td><span class="pb-cat-tag women">女鞋</span></td>
+              <td>百丽 / 思加图 多脚型试穿（瘦脚、肥脚、高脚背），解决线上不能试的痛点</td>
+            </tr>
+            <tr>
+              <td><span class="pb-cat-tag elder">中老年</span></td>
+              <td>足力健 / 老人头 "子女买给父母"情感叙事 + 专属客服话术</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pb-sop">
+        <div class="pb-sop-step">
+          <div class="pb-sop-time">直播前 4h</div>
+          <div class="pb-sop-act">短视频铺量 + 千川投放预热，预约人数破万</div>
+        </div>
+        <div class="pb-sop-step">
+          <div class="pb-sop-time">开播 0~30min</div>
+          <div class="pb-sop-act">福利款抽奖快速起号、拉停留密度</div>
+        </div>
+        <div class="pb-sop-step">
+          <div class="pb-sop-time">30min~2h</div>
+          <div class="pb-sop-act">主推爆款详细讲解 + 第一波秒杀</div>
+        </div>
+        <div class="pb-sop-step">
+          <div class="pb-sop-time">2h~4h</div>
+          <div class="pb-sop-act">利润款交叉，整点循环节奏</div>
+        </div>
+        <div class="pb-sop-step">
+          <div class="pb-sop-time">4h~6h</div>
+          <div class="pb-sop-act">第二波短视频投流 + 福袋拉新</div>
+        </div>
+        <div class="pb-sop-step">
+          <div class="pb-sop-time">6h~下播</div>
+          <div class="pb-sop-act">清库存 + 老粉专享 + 关播预告</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 四、追赶者建议 -->
+    <div class="pb-section-title">四、给「箱包鞋靴」赛道追赶者的 4 条硬指标</div>
+    <div class="pb-tips">
+      <div class="pb-tip">
+        <div class="tag">入场券</div>
+        <div class="txt">单场时长 ≥ 6h，低于这个值几乎进不了 TOP10</div>
+      </div>
+      <div class="pb-tip">
+        <div class="tag">客单价</div>
+        <div class="txt">箱包卡 300-500、鞋靴卡 200-300 是头部集中段</div>
+      </div>
+      <div class="pb-tip">
+        <div class="tag">GPM</div>
+        <div class="txt">≥ 8000 是头部分水岭，可对照看板 KPI</div>
+      </div>
+      <div class="pb-tip">
+        <div class="tag">互动率</div>
+        <div class="txt">≥ 30% 才能拿到自然流量加权</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    数据看板 · 当前为模拟数据 Demo · 接入真实数据请编辑 <code>data/mockData.js</code>
+  </footer>
+</div>
+
+<script src="data/mockData.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
