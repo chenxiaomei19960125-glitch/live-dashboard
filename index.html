@@ -528,17 +528,6 @@
     text-align: center; font-size: 12px; color: var(--text-muted);
     padding: 20px 0 4px;
   }
-
-  /* 品牌 Tab */
-  .chart-title-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-  .brand-tabs { display:flex; gap:4px; background:var(--bg-primary); padding:3px; border-radius:10px; }
-  .brand-tab {
-    border:none; outline:none; cursor:pointer; padding:4px 14px; border-radius:8px;
-    font-size:13px; font-weight:500; color:var(--text-secondary); background:transparent;
-    transition:.2s; white-space:nowrap;
-  }
-  .brand-tab.active { background:#fff; color:var(--text-primary); box-shadow:0 1px 4px rgba(0,0,0,.08); }
-  .brand-tab:hover:not(.active) { color:var(--text-primary); }
 </style>
 </head>
 <body>
@@ -629,14 +618,7 @@
   <!-- ===== Charts ===== -->
   <div class="charts-row">
     <div class="chart-card">
-      <div class="chart-title-row">
-        <div class="chart-title">GMV TOP10 大众品牌 · 全赛道</div>
-        <div class="brand-tabs" id="brandTabs">
-          <button class="brand-tab active" data-type="all">整体</button>
-          <button class="brand-tab" data-type="whiteLabel">白牌</button>
-          <button class="brand-tab" data-type="brand">品牌</button>
-        </div>
-      </div>
+      <div class="chart-title">GMV TOP10 大众品牌 · 全赛道</div>
       <div id="chartGmv" class="chart-box"></div>
     </div>
     <div class="chart-card">
@@ -816,7 +798,7 @@
   </footer>
 </div>
 
-<script src="data/mockData.js?v=20260526f"></script>
-<script src="js/dashboard.js?v=20260526f"></script>
+<script src="data/mockData.js?v=20260526g"></script>
+<script src="js/dashboard.js?v=20260526g"></script>
 </body>
 </html>

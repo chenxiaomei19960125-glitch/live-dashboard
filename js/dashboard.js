@@ -8,8 +8,7 @@
     endDate: null,
     sortKey: null,
     sortDir: 'desc',
-    activeQuick: 'all',
-    brandType: 'all'   // all | whiteLabel | brand
+    activeQuick: 'all'
   };
 
   const COLUMNS = [
@@ -95,15 +94,6 @@
         render();
       });
     });
-    // 品牌 Tab 切换（整体/白牌/品牌）
-    document.querySelectorAll('.brand-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.brand-tab').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.brandType = btn.dataset.type;
-        render();
-      });
-    });
     // 应用
     document.getElementById('applyFilter').addEventListener('click', () => {
       state.startDate = document.getElementById('startDate').value;
@@ -158,9 +148,7 @@
   }
   // TOP10：每个品牌时间范围内"最新一场"，按 GMV 降序取前 10 —— 图表/表格用
   function getTop10LatestSessions() {
-    let sessions = getAllSessions();
-    if (state.brandType === 'brand') sessions = sessions.filter(s => s.isBrand);
-    else if (state.brandType === 'whiteLabel') sessions = sessions.filter(s => !s.isBrand);
+    const sessions = getAllSessions();
     const byBrand = new Map();
     sessions.forEach(s => {
       const prev = byBrand.get(s.brand);
@@ -389,9 +377,8 @@
         return col.strong ? `<td><span class="num-strong">${val}</span></td>` : `<td>${val}</td>`;
       }).join('') + '</tr>';
     }).join('');
-    const brandLabel = state.brandType === 'brand' ? '品牌' : state.brandType === 'whiteLabel' ? '白牌' : '';
     document.getElementById('tableInfo').textContent =
-      `${state.startDate} ~ ${state.endDate} · TOP${sorted.length} 大众品牌${brandLabel ? '（' + brandLabel + '）' : ''}（每个品牌取最新一场）· 已剔除奢侈品`;
+      `${state.startDate} ~ ${state.endDate} · TOP${sorted.length} 大众品牌（每个品牌取最新一场）· 已剔除奢侈品`;
   }
 
   // ---------- Playbook 基本盘画像 ----------
